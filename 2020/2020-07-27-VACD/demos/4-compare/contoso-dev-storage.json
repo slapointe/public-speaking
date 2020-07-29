@@ -1,0 +1,56 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "type": "string",
+            "defaultValue": "eastus"
+        },
+        "storageAccountNamePrefix": {
+            "type": "string",
+            "defaultValue": "contosodevstorage"
+        },
+        "accountType": {
+            "type": "string",
+            "defaultValue": "Standard_LRS"
+        },
+        "kind": {
+            "type": "string",
+            "defaultValue": "StorageV2"
+        },
+        "accessTier": {
+            "type": "string",
+            "defaultValue": "Hot"
+        },
+        "supportsHttpsTrafficOnly": {
+            "type": "bool",
+            "defaultValue": true
+        },
+        "numberOfInstances": {
+            "type": "int",
+            "defaultValue": 10
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "apiVersion": "2018-07-01",
+            "name": "[concat(parameters('storageAccountNamePrefix'), copyindex())]",
+            "location": "[parameters('location')]",
+            "sku": {
+                "name": "[parameters('accountType')]"
+            },
+            "kind": "[parameters('kind')]",
+            "copy": {
+                "name": "storageAccounts",
+                "count": "[parameters('numberOfInstances')]"
+            },
+            "properties": {
+                "accessTier": "[parameters('accessTier')]",
+                "supportsHttpsTrafficOnly": "[parameters('supportsHttpsTrafficOnly')]"
+            }
+        }
+    ],
+    "outputs": {}
+}

@@ -1,0 +1,53 @@
+// VirtualAzure-ARG
+// Click the "Run query" command above to execute the query and see results.
+// number of subcriptions selected
+Resources
+| summarize dcount(subscriptionId)
+
+// all storage accounts
+Resources
+| where type =~ 'Microsoft.Storage/storageAccounts'
+| extend name = 'obfuscated', resourceGroup = 'obfuscated'
+| project subscriptionId, resourceGroup, name, description = 'custom description'
+
+// all storage account with HTTP enabled
+Resources
+| where type =~ 'Microsoft.Storage/storageAccounts'
+| where properties.supportsHttpsTrafficOnly == 'false'
+| summarize count = count() by location
+
+// expiring certificates within 90 days
+Resources
+| where type =~ 'Microsoft.Web/certificates' and properties.expirationDate <= now(90d)
+| extend expirationDate = tostring(properties.expirationDate)
+| extend name = 'obfuscated', resourceGroup = 'obfuscated'
+| project subscriptionId, resourceGroup, name, location, expirationDate
+| sort by expirationDate asc
+
+// joining table
+Resources
+| join kind = inner (ResourceContainers | where 	type=~'Microsoft.Resources/Subscriptions' | project 	subscriptionName=name, subscriptionId) on subscriptionId
+| where subscriptionName contains 'Sponsorship'
+| project type, name, subscriptionId, subscriptionName
+| limit 1
+
+// charts
+Resources
+| where type =~ 'Microsoft.Web/sites'
+| summarize count() by tostring(properties.sku)
+
+//pin in the portal
+Resources
+| where type =~ 'Microsoft.Storage/storageAccounts'
+| where properties.supportsHttpsTrafficOnly == 'false'
+| summarize count = count() by location
+
+---------------
+
+Execute query non managed disk in VM from https://github.com/sharegate/azure-quickstart-resource-graph/blob/master/queries/virtualMachines/vm-not-using-managed-disk/query.txt
+
+Execute query vm without antimalware extension from https://github.com/sharegate/azure-quickstart-resource-graph/blob/master/queries/virtualMachines/vm-without-antimalware-extension/query.txt
+
+// create query dynamically
+where type == 'microsoft.web/serverfarms'
+| where subscriptionId == '0e06582f-1d93-476d-8876-f9e826532c5d'
